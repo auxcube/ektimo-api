@@ -1,0 +1,26 @@
+definitions:
+  health.Response:
+    properties:
+      error:
+        type: string
+      status:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  title: Ektimo API
+  version: "1.0"
+paths:
+  /healthz:
+    get:
+      description: checks if the app is healthy
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/health.Response'
+      summary: Health check
+      tags:
+      - health
+swagger: "2.0"

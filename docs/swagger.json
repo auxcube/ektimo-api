@@ -1,0 +1,41 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Ektimo API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "paths": {
+        "/healthz": {
+            "get": {
+                "description": "checks if the app is healthy",
+                "tags": [
+                    "health"
+                ],
+                "summary": "Health check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/health.Response"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "health.Response": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
