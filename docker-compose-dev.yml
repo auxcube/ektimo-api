@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+
+  postgres:
+    container_name: postgres
+    image: postgres:14.4
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: 'user'
+      POSTGRES_PASSWORD: 'pass'
+      POSTGRES_DB: 'ektimo'
+    ports:
+      - 5432:5432
+  
+  ekitmo-api:
+    build: .
+    container_name: ektimo-api
+    image: ektimo-api
+    environment:
+      POSTGRES_HOST: 'postgres'
+      POSTGRES_DATABASE: 'ektimo'
+      POSTGRES_USER: 'user'
+      POSTGRES_PASSWORD: 'pass'
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
+
+volumes:
+  pg-data:
