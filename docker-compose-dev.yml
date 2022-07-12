@@ -20,6 +20,7 @@ services:
     image: ektimo-api
     environment:
       POSTGRES_HOST: 'postgres'
+      POSTGRES_PORT: 5432
       POSTGRES_DATABASE: 'ektimo'
       POSTGRES_USER: 'user'
       POSTGRES_PASSWORD: 'pass'

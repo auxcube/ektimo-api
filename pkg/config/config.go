@@ -35,6 +35,7 @@ type (
 
 	PG struct {
 		Host     string `mapstructure:"POSTGRES_HOST"`
+		Port     int    `mapstructure:"POSTGRES_PORT"`
 		Database string `mapstructure:"POSTGRES_DATABASE"`
 		User     string `mapstructure:"POSTGRES_USER"`
 		Password string `mapstructure:"POSTGRES_PASSWORD"`

@@ -29,7 +29,8 @@ func main() {
 	log := logger.New(config.Global.Log.Level)
 
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		config.Global.PG.Host, 5432, config.Global.PG.User, config.Global.PG.Password, config.Global.PG.Database)
+		config.Global.PG.Host, config.Global.PG.Port, config.Global.PG.User,
+		config.Global.PG.Password, config.Global.PG.Database)
 	db, err := database.Open("postgres", psqlInfo)
 	if err != nil {
 		log.Fatal("failed opening connection to postgres: %v", err)
