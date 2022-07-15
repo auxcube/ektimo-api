@@ -1,4 +1,19 @@
 definitions:
+  ent.Candidate:
+    properties:
+      email:
+        description: Email holds the value of the "email" field.
+        type: string
+      id:
+        description: ID of the ent.
+        type: string
+      name:
+        description: Name holds the value of the "name" field.
+        type: string
+      status:
+        description: Status holds the value of the "status" field.
+        type: string
+    type: object
   health.Response:
     properties:
       error:
@@ -12,6 +27,19 @@ info:
   title: Ektimo API
   version: "1.0"
 paths:
+  /candidates:
+    get:
+      description: Lists all candidates in the app
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/ent.Candidate'
+            type: array
+      summary: List candidates
+      tags:
+      - candidates
   /healthz:
     get:
       description: checks if the app is healthy

@@ -24,7 +24,7 @@ docs: ### Generate swagger docs
 
 run: docs ### Run ektimo-api locally
 	go mod tidy && go mod download && \
-	ENV=dev DISABLE_SWAGGER_HTTP_HANDLER='' CGO_ENABLED=0 go run ./cmd/ektimo-api
+	ENV=dev CGO_ENABLED=0 go run ./cmd/ektimo-api
 .PHONY: run
 
 test: ### Run tests

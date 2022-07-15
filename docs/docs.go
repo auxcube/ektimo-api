@@ -16,6 +16,26 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/candidates": {
+            "get": {
+                "description": "Lists all candidates in the app",
+                "tags": [
+                    "candidates"
+                ],
+                "summary": "List candidates",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/ent.Candidate"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/healthz": {
             "get": {
                 "description": "checks if the app is healthy",
@@ -35,6 +55,27 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "ent.Candidate": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "Email holds the value of the \"email\" field.",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "ID of the ent.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name holds the value of the \"name\" field.",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "Status holds the value of the \"status\" field.",
+                    "type": "string"
+                }
+            }
+        },
         "health.Response": {
             "type": "object",
             "properties": {

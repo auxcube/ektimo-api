@@ -8,6 +8,19 @@ import (
 )
 
 var (
+	// CandidatesColumns holds the columns for the "candidates" table.
+	CandidatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "name", Type: field.TypeString},
+		{Name: "email", Type: field.TypeString, Unique: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"no-quiz-assigned"}, Default: "no-quiz-assigned"},
+	}
+	// CandidatesTable holds the schema information for the "candidates" table.
+	CandidatesTable = &schema.Table{
+		Name:       "candidates",
+		Columns:    CandidatesColumns,
+		PrimaryKey: []*schema.Column{CandidatesColumns[0]},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -22,6 +35,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CandidatesTable,
 		UsersTable,
 	}
 )

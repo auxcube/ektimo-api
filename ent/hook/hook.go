@@ -9,6 +9,19 @@ import (
 	"github.com/auxcube/ektimo-api/ent"
 )
 
+// The CandidateFunc type is an adapter to allow the use of ordinary
+// function as Candidate mutator.
+type CandidateFunc func(context.Context, *ent.CandidateMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CandidateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.CandidateMutation)
+	if !ok {
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CandidateMutation", m)
+	}
+	return f(ctx, mv)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
