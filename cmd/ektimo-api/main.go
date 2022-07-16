@@ -10,6 +10,7 @@ import (
 
 	_ "github.com/auxcube/ektimo-api/docs"
 	"github.com/auxcube/ektimo-api/internal/health"
+	"github.com/auxcube/ektimo-api/internal/question"
 	"github.com/auxcube/ektimo-api/pkg/config"
 	"github.com/auxcube/ektimo-api/pkg/database"
 	"github.com/auxcube/ektimo-api/pkg/httpserver"
@@ -43,6 +44,10 @@ func main() {
 	// TODO: initialize MVC components/dependencies here
 	healthController := health.NewController(db)
 
+	textQuestionService := question.NewTextService(db.TextQuestion)
+	questionService := question.NewService(textQuestionService)
+	questionController := question.NewController(questionService)
+
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.Use(gin.Recovery())
@@ -59,6 +64,7 @@ func main() {
 
 	// TODO: register routes
 	healthController.RegisterRoutes(router)
+	questionController.RegisterRoutes(router)
 
 	httpServer := httpserver.New(router, httpserver.Port(config.Global.HTTP.Port))
 	log.Info("Server started listening on port %d", config.Global.HTTP.Port)
