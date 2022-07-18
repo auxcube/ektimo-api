@@ -44,7 +44,7 @@ func main() {
 	// TODO: initialize MVC components/dependencies here
 	healthController := health.NewController(db)
 
-	candidateService := candidate.NewService(db)
+	candidateService := candidate.NewService(db.Candidate)
 	candidateController := *candidate.NewController(candidateService)
 
 	gin.SetMode(gin.ReleaseMode)

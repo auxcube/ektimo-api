@@ -1,24 +1,29 @@
+//go:generate mockgen -source=service.go -destination=mocks/service.go -package=mocks
 package candidate
 
 import (
 	"context"
 
 	"github.com/auxcube/ektimo-api/ent"
-	"github.com/auxcube/ektimo-api/pkg/database"
 )
+
+type candidateRepository interface {
+	Query() *ent.CandidateQuery
+}
 
 type Service struct {
 	// TODO: mock this for unit tests
-	db *database.Client
+	repo candidateRepository
 }
 
 // NewService returns a new Service
-func NewService(db *database.Client) *Service {
-	return &Service{db: db}
+func NewService(db candidateRepository) *Service {
+	return &Service{repo: db}
 }
 
+// List returns a list of all candidates
 func (s *Service) List(ctx context.Context) ([]*ent.Candidate, error) {
-	candidates, err := s.db.Candidate.Query().All(ctx)
+	candidates, err := s.repo.Query().All(ctx)
 	if err != nil {
 		return nil, err
 	}

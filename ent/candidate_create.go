@@ -52,6 +52,14 @@ func (cc *CandidateCreate) SetID(u uuid.UUID) *CandidateCreate {
 	return cc
 }
 
+// SetNillableID sets the "id" field if the given value is not nil.
+func (cc *CandidateCreate) SetNillableID(u *uuid.UUID) *CandidateCreate {
+	if u != nil {
+		cc.SetID(*u)
+	}
+	return cc
+}
+
 // Mutation returns the CandidateMutation object of the builder.
 func (cc *CandidateCreate) Mutation() *CandidateMutation {
 	return cc.mutation
@@ -126,6 +134,10 @@ func (cc *CandidateCreate) defaults() {
 	if _, ok := cc.mutation.Status(); !ok {
 		v := candidate.DefaultStatus
 		cc.mutation.SetStatus(v)
+	}
+	if _, ok := cc.mutation.ID(); !ok {
+		v := candidate.DefaultID()
+		cc.mutation.SetID(v)
 	}
 }
 

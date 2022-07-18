@@ -8,18 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type candidateFetcher interface {
-	List(context.Context) ([]*ent.Candidate, error)
-}
-
 type candidateService interface {
-	candidateFetcher
+	List(context.Context) ([]*ent.Candidate, error)
 }
 
 type Controller struct {
 	service candidateService
 }
 
+// NewController creates a new controller
 func NewController(service candidateService) *Controller {
 	return &Controller{service: service}
 }

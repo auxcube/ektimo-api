@@ -4,6 +4,8 @@ package candidate
 
 import (
 	"fmt"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -38,6 +40,11 @@ func ValidColumn(column string) bool {
 	}
 	return false
 }
+
+var (
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
+)
 
 // Status defines the type for the "status" enum field.
 type Status string
