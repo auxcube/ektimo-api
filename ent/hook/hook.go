@@ -9,15 +9,15 @@ import (
 	"github.com/auxcube/ektimo-api/ent"
 )
 
-// The UserFunc type is an adapter to allow the use of ordinary
-// function as User mutator.
-type UserFunc func(context.Context, *ent.UserMutation) (ent.Value, error)
+// The TextQuestionFunc type is an adapter to allow the use of ordinary
+// function as TextQuestion mutator.
+type TextQuestionFunc func(context.Context, *ent.TextQuestionMutation) (ent.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f UserFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
-	mv, ok := m.(*ent.UserMutation)
+func (f TextQuestionFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	mv, ok := m.(*ent.TextQuestionMutation)
 	if !ok {
-		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.UserMutation", m)
+		return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.TextQuestionMutation", m)
 	}
 	return f(ctx, mv)
 }

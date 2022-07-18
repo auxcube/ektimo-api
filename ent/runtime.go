@@ -3,22 +3,44 @@
 package ent
 
 import (
+	"time"
+
 	"github.com/auxcube/ektimo-api/ent/schema"
-	"github.com/auxcube/ektimo-api/ent/user"
+	"github.com/auxcube/ektimo-api/ent/textquestion"
+	"github.com/google/uuid"
 )
 
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	userFields := schema.User{}.Fields()
-	_ = userFields
-	// userDescAge is the schema descriptor for age field.
-	userDescAge := userFields[0].Descriptor()
-	// user.AgeValidator is a validator for the "age" field. It is called by the builders before save.
-	user.AgeValidator = userDescAge.Validators[0].(func(int) error)
-	// userDescName is the schema descriptor for name field.
-	userDescName := userFields[1].Descriptor()
-	// user.DefaultName holds the default value on creation for the name field.
-	user.DefaultName = userDescName.Default.(string)
+	textquestionMixin := schema.TextQuestion{}.Mixin()
+	textquestionMixinFields0 := textquestionMixin[0].Fields()
+	_ = textquestionMixinFields0
+	textquestionMixinFields1 := textquestionMixin[1].Fields()
+	_ = textquestionMixinFields1
+	textquestionFields := schema.TextQuestion{}.Fields()
+	_ = textquestionFields
+	// textquestionDescCreatedAt is the schema descriptor for created_at field.
+	textquestionDescCreatedAt := textquestionMixinFields0[0].Descriptor()
+	// textquestion.DefaultCreatedAt holds the default value on creation for the created_at field.
+	textquestion.DefaultCreatedAt = textquestionDescCreatedAt.Default.(func() time.Time)
+	// textquestionDescUpdatedAt is the schema descriptor for updated_at field.
+	textquestionDescUpdatedAt := textquestionMixinFields0[1].Descriptor()
+	// textquestion.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	textquestion.DefaultUpdatedAt = textquestionDescUpdatedAt.Default.(func() time.Time)
+	// textquestion.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	textquestion.UpdateDefaultUpdatedAt = textquestionDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// textquestionDescHumanID is the schema descriptor for human_id field.
+	textquestionDescHumanID := textquestionMixinFields1[1].Descriptor()
+	// textquestion.HumanIDValidator is a validator for the "human_id" field. It is called by the builders before save.
+	textquestion.HumanIDValidator = textquestionDescHumanID.Validators[0].(func(string) error)
+	// textquestionDescText is the schema descriptor for text field.
+	textquestionDescText := textquestionMixinFields1[2].Descriptor()
+	// textquestion.TextValidator is a validator for the "text" field. It is called by the builders before save.
+	textquestion.TextValidator = textquestionDescText.Validators[0].(func(string) error)
+	// textquestionDescID is the schema descriptor for id field.
+	textquestionDescID := textquestionMixinFields1[0].Descriptor()
+	// textquestion.DefaultID holds the default value on creation for the id field.
+	textquestion.DefaultID = textquestionDescID.Default.(func() uuid.UUID)
 }

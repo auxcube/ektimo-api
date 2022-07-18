@@ -8,8 +8,9 @@ import (
 	"log"
 
 	"github.com/auxcube/ektimo-api/ent/migrate"
+	"github.com/google/uuid"
 
-	"github.com/auxcube/ektimo-api/ent/user"
+	"github.com/auxcube/ektimo-api/ent/textquestion"
 
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
@@ -20,8 +21,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// User is the client for interacting with the User builders.
-	User *UserClient
+	// TextQuestion is the client for interacting with the TextQuestion builders.
+	TextQuestion *TextQuestionClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -35,7 +36,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.User = NewUserClient(c.config)
+	c.TextQuestion = NewTextQuestionClient(c.config)
 }
 
 // Open opens a database/sql.DB specified by the driver name and
@@ -67,9 +68,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		User:   NewUserClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		TextQuestion: NewTextQuestionClient(cfg),
 	}, nil
 }
 
@@ -87,16 +88,16 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		User:   NewUserClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		TextQuestion: NewTextQuestionClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		User.
+//		TextQuestion.
 //		Query().
 //		Count(ctx)
 //
@@ -119,87 +120,87 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.User.Use(hooks...)
+	c.TextQuestion.Use(hooks...)
 }
 
-// UserClient is a client for the User schema.
-type UserClient struct {
+// TextQuestionClient is a client for the TextQuestion schema.
+type TextQuestionClient struct {
 	config
 }
 
-// NewUserClient returns a client for the User from the given config.
-func NewUserClient(c config) *UserClient {
-	return &UserClient{config: c}
+// NewTextQuestionClient returns a client for the TextQuestion from the given config.
+func NewTextQuestionClient(c config) *TextQuestionClient {
+	return &TextQuestionClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `user.Hooks(f(g(h())))`.
-func (c *UserClient) Use(hooks ...Hook) {
-	c.hooks.User = append(c.hooks.User, hooks...)
+// A call to `Use(f, g, h)` equals to `textquestion.Hooks(f(g(h())))`.
+func (c *TextQuestionClient) Use(hooks ...Hook) {
+	c.hooks.TextQuestion = append(c.hooks.TextQuestion, hooks...)
 }
 
-// Create returns a create builder for User.
-func (c *UserClient) Create() *UserCreate {
-	mutation := newUserMutation(c.config, OpCreate)
-	return &UserCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a create builder for TextQuestion.
+func (c *TextQuestionClient) Create() *TextQuestionCreate {
+	mutation := newTextQuestionMutation(c.config, OpCreate)
+	return &TextQuestionCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of User entities.
-func (c *UserClient) CreateBulk(builders ...*UserCreate) *UserCreateBulk {
-	return &UserCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of TextQuestion entities.
+func (c *TextQuestionClient) CreateBulk(builders ...*TextQuestionCreate) *TextQuestionCreateBulk {
+	return &TextQuestionCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for User.
-func (c *UserClient) Update() *UserUpdate {
-	mutation := newUserMutation(c.config, OpUpdate)
-	return &UserUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for TextQuestion.
+func (c *TextQuestionClient) Update() *TextQuestionUpdate {
+	mutation := newTextQuestionMutation(c.config, OpUpdate)
+	return &TextQuestionUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *UserClient) UpdateOne(u *User) *UserUpdateOne {
-	mutation := newUserMutation(c.config, OpUpdateOne, withUser(u))
-	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *TextQuestionClient) UpdateOne(tq *TextQuestion) *TextQuestionUpdateOne {
+	mutation := newTextQuestionMutation(c.config, OpUpdateOne, withTextQuestion(tq))
+	return &TextQuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *UserClient) UpdateOneID(id int) *UserUpdateOne {
-	mutation := newUserMutation(c.config, OpUpdateOne, withUserID(id))
-	return &UserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *TextQuestionClient) UpdateOneID(id uuid.UUID) *TextQuestionUpdateOne {
+	mutation := newTextQuestionMutation(c.config, OpUpdateOne, withTextQuestionID(id))
+	return &TextQuestionUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for User.
-func (c *UserClient) Delete() *UserDelete {
-	mutation := newUserMutation(c.config, OpDelete)
-	return &UserDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for TextQuestion.
+func (c *TextQuestionClient) Delete() *TextQuestionDelete {
+	mutation := newTextQuestionMutation(c.config, OpDelete)
+	return &TextQuestionDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a delete builder for the given entity.
-func (c *UserClient) DeleteOne(u *User) *UserDeleteOne {
-	return c.DeleteOneID(u.ID)
+func (c *TextQuestionClient) DeleteOne(tq *TextQuestion) *TextQuestionDeleteOne {
+	return c.DeleteOneID(tq.ID)
 }
 
 // DeleteOneID returns a delete builder for the given id.
-func (c *UserClient) DeleteOneID(id int) *UserDeleteOne {
-	builder := c.Delete().Where(user.ID(id))
+func (c *TextQuestionClient) DeleteOneID(id uuid.UUID) *TextQuestionDeleteOne {
+	builder := c.Delete().Where(textquestion.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &UserDeleteOne{builder}
+	return &TextQuestionDeleteOne{builder}
 }
 
-// Query returns a query builder for User.
-func (c *UserClient) Query() *UserQuery {
-	return &UserQuery{
+// Query returns a query builder for TextQuestion.
+func (c *TextQuestionClient) Query() *TextQuestionQuery {
+	return &TextQuestionQuery{
 		config: c.config,
 	}
 }
 
-// Get returns a User entity by its id.
-func (c *UserClient) Get(ctx context.Context, id int) (*User, error) {
-	return c.Query().Where(user.ID(id)).Only(ctx)
+// Get returns a TextQuestion entity by its id.
+func (c *TextQuestionClient) Get(ctx context.Context, id uuid.UUID) (*TextQuestion, error) {
+	return c.Query().Where(textquestion.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *UserClient) GetX(ctx context.Context, id int) *User {
+func (c *TextQuestionClient) GetX(ctx context.Context, id uuid.UUID) *TextQuestion {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -208,6 +209,6 @@ func (c *UserClient) GetX(ctx context.Context, id int) *User {
 }
 
 // Hooks returns the client hooks.
-func (c *UserClient) Hooks() []Hook {
-	return c.hooks.User
+func (c *TextQuestionClient) Hooks() []Hook {
+	return c.hooks.TextQuestion
 }

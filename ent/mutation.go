@@ -7,9 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/auxcube/ektimo-api/ent/predicate"
-	"github.com/auxcube/ektimo-api/ent/user"
+	"github.com/auxcube/ektimo-api/ent/textquestion"
+	"github.com/google/uuid"
 
 	"entgo.io/ent"
 )
@@ -23,35 +25,37 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeUser = "User"
+	TypeTextQuestion = "TextQuestion"
 )
 
-// UserMutation represents an operation that mutates the User nodes in the graph.
-type UserMutation struct {
+// TextQuestionMutation represents an operation that mutates the TextQuestion nodes in the graph.
+type TextQuestionMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
-	age           *int
-	addage        *int
-	name          *string
+	id            *uuid.UUID
+	created_at    *time.Time
+	updated_at    *time.Time
+	human_id      *string
+	text          *string
+	answer        *string
 	clearedFields map[string]struct{}
 	done          bool
-	oldValue      func(context.Context) (*User, error)
-	predicates    []predicate.User
+	oldValue      func(context.Context) (*TextQuestion, error)
+	predicates    []predicate.TextQuestion
 }
 
-var _ ent.Mutation = (*UserMutation)(nil)
+var _ ent.Mutation = (*TextQuestionMutation)(nil)
 
-// userOption allows management of the mutation configuration using functional options.
-type userOption func(*UserMutation)
+// textquestionOption allows management of the mutation configuration using functional options.
+type textquestionOption func(*TextQuestionMutation)
 
-// newUserMutation creates new mutation for the User entity.
-func newUserMutation(c config, op Op, opts ...userOption) *UserMutation {
-	m := &UserMutation{
+// newTextQuestionMutation creates new mutation for the TextQuestion entity.
+func newTextQuestionMutation(c config, op Op, opts ...textquestionOption) *TextQuestionMutation {
+	m := &TextQuestionMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeUser,
+		typ:           TypeTextQuestion,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -60,20 +64,20 @@ func newUserMutation(c config, op Op, opts ...userOption) *UserMutation {
 	return m
 }
 
-// withUserID sets the ID field of the mutation.
-func withUserID(id int) userOption {
-	return func(m *UserMutation) {
+// withTextQuestionID sets the ID field of the mutation.
+func withTextQuestionID(id uuid.UUID) textquestionOption {
+	return func(m *TextQuestionMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *User
+			value *TextQuestion
 		)
-		m.oldValue = func(ctx context.Context) (*User, error) {
+		m.oldValue = func(ctx context.Context) (*TextQuestion, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().User.Get(ctx, id)
+					value, err = m.Client().TextQuestion.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -82,10 +86,10 @@ func withUserID(id int) userOption {
 	}
 }
 
-// withUser sets the old User of the mutation.
-func withUser(node *User) userOption {
-	return func(m *UserMutation) {
-		m.oldValue = func(context.Context) (*User, error) {
+// withTextQuestion sets the old TextQuestion of the mutation.
+func withTextQuestion(node *TextQuestion) textquestionOption {
+	return func(m *TextQuestionMutation) {
+		m.oldValue = func(context.Context) (*TextQuestion, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -94,7 +98,7 @@ func withUser(node *User) userOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m UserMutation) Client() *Client {
+func (m TextQuestionMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -102,7 +106,7 @@ func (m UserMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m UserMutation) Tx() (*Tx, error) {
+func (m TextQuestionMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
@@ -111,9 +115,15 @@ func (m UserMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of TextQuestion entities.
+func (m *TextQuestionMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *UserMutation) ID() (id int, exists bool) {
+func (m *TextQuestionMutation) ID() (id uuid.UUID, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -124,138 +134,248 @@ func (m *UserMutation) ID() (id int, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *UserMutation) IDs(ctx context.Context) ([]int, error) {
+func (m *TextQuestionMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []int{id}, nil
+			return []uuid.UUID{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().User.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().TextQuestion.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
-// SetAge sets the "age" field.
-func (m *UserMutation) SetAge(i int) {
-	m.age = &i
-	m.addage = nil
+// SetCreatedAt sets the "created_at" field.
+func (m *TextQuestionMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
 }
 
-// Age returns the value of the "age" field in the mutation.
-func (m *UserMutation) Age() (r int, exists bool) {
-	v := m.age
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *TextQuestionMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldAge returns the old "age" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
+// OldCreatedAt returns the old "created_at" field's value of the TextQuestion entity.
+// If the TextQuestion object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldAge(ctx context.Context) (v int, err error) {
+func (m *TextQuestionMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldAge is only allowed on UpdateOne operations")
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldAge requires an ID field in the mutation")
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldAge: %w", err)
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
 	}
-	return oldValue.Age, nil
+	return oldValue.CreatedAt, nil
 }
 
-// AddAge adds i to the "age" field.
-func (m *UserMutation) AddAge(i int) {
-	if m.addage != nil {
-		*m.addage += i
-	} else {
-		m.addage = &i
-	}
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *TextQuestionMutation) ResetCreatedAt() {
+	m.created_at = nil
 }
 
-// AddedAge returns the value that was added to the "age" field in this mutation.
-func (m *UserMutation) AddedAge() (r int, exists bool) {
-	v := m.addage
+// SetUpdatedAt sets the "updated_at" field.
+func (m *TextQuestionMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *TextQuestionMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetAge resets all changes to the "age" field.
-func (m *UserMutation) ResetAge() {
-	m.age = nil
-	m.addage = nil
-}
-
-// SetName sets the "name" field.
-func (m *UserMutation) SetName(s string) {
-	m.name = &s
-}
-
-// Name returns the value of the "name" field in the mutation.
-func (m *UserMutation) Name() (r string, exists bool) {
-	v := m.name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldName returns the old "name" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
+// OldUpdatedAt returns the old "updated_at" field's value of the TextQuestion entity.
+// If the TextQuestion object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldName(ctx context.Context) (v string, err error) {
+func (m *TextQuestionMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
 	}
-	return oldValue.Name, nil
+	return oldValue.UpdatedAt, nil
 }
 
-// ResetName resets all changes to the "name" field.
-func (m *UserMutation) ResetName() {
-	m.name = nil
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *TextQuestionMutation) ResetUpdatedAt() {
+	m.updated_at = nil
 }
 
-// Where appends a list predicates to the UserMutation builder.
-func (m *UserMutation) Where(ps ...predicate.User) {
+// SetHumanID sets the "human_id" field.
+func (m *TextQuestionMutation) SetHumanID(s string) {
+	m.human_id = &s
+}
+
+// HumanID returns the value of the "human_id" field in the mutation.
+func (m *TextQuestionMutation) HumanID() (r string, exists bool) {
+	v := m.human_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHumanID returns the old "human_id" field's value of the TextQuestion entity.
+// If the TextQuestion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TextQuestionMutation) OldHumanID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHumanID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHumanID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHumanID: %w", err)
+	}
+	return oldValue.HumanID, nil
+}
+
+// ResetHumanID resets all changes to the "human_id" field.
+func (m *TextQuestionMutation) ResetHumanID() {
+	m.human_id = nil
+}
+
+// SetText sets the "text" field.
+func (m *TextQuestionMutation) SetText(s string) {
+	m.text = &s
+}
+
+// Text returns the value of the "text" field in the mutation.
+func (m *TextQuestionMutation) Text() (r string, exists bool) {
+	v := m.text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldText returns the old "text" field's value of the TextQuestion entity.
+// If the TextQuestion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TextQuestionMutation) OldText(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldText: %w", err)
+	}
+	return oldValue.Text, nil
+}
+
+// ResetText resets all changes to the "text" field.
+func (m *TextQuestionMutation) ResetText() {
+	m.text = nil
+}
+
+// SetAnswer sets the "answer" field.
+func (m *TextQuestionMutation) SetAnswer(s string) {
+	m.answer = &s
+}
+
+// Answer returns the value of the "answer" field in the mutation.
+func (m *TextQuestionMutation) Answer() (r string, exists bool) {
+	v := m.answer
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAnswer returns the old "answer" field's value of the TextQuestion entity.
+// If the TextQuestion object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TextQuestionMutation) OldAnswer(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAnswer is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAnswer requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAnswer: %w", err)
+	}
+	return oldValue.Answer, nil
+}
+
+// ClearAnswer clears the value of the "answer" field.
+func (m *TextQuestionMutation) ClearAnswer() {
+	m.answer = nil
+	m.clearedFields[textquestion.FieldAnswer] = struct{}{}
+}
+
+// AnswerCleared returns if the "answer" field was cleared in this mutation.
+func (m *TextQuestionMutation) AnswerCleared() bool {
+	_, ok := m.clearedFields[textquestion.FieldAnswer]
+	return ok
+}
+
+// ResetAnswer resets all changes to the "answer" field.
+func (m *TextQuestionMutation) ResetAnswer() {
+	m.answer = nil
+	delete(m.clearedFields, textquestion.FieldAnswer)
+}
+
+// Where appends a list predicates to the TextQuestionMutation builder.
+func (m *TextQuestionMutation) Where(ps ...predicate.TextQuestion) {
 	m.predicates = append(m.predicates, ps...)
 }
 
 // Op returns the operation name.
-func (m *UserMutation) Op() Op {
+func (m *TextQuestionMutation) Op() Op {
 	return m.op
 }
 
-// Type returns the node type of this mutation (User).
-func (m *UserMutation) Type() string {
+// Type returns the node type of this mutation (TextQuestion).
+func (m *TextQuestionMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 2)
-	if m.age != nil {
-		fields = append(fields, user.FieldAge)
+func (m *TextQuestionMutation) Fields() []string {
+	fields := make([]string, 0, 5)
+	if m.created_at != nil {
+		fields = append(fields, textquestion.FieldCreatedAt)
 	}
-	if m.name != nil {
-		fields = append(fields, user.FieldName)
+	if m.updated_at != nil {
+		fields = append(fields, textquestion.FieldUpdatedAt)
+	}
+	if m.human_id != nil {
+		fields = append(fields, textquestion.FieldHumanID)
+	}
+	if m.text != nil {
+		fields = append(fields, textquestion.FieldText)
+	}
+	if m.answer != nil {
+		fields = append(fields, textquestion.FieldAnswer)
 	}
 	return fields
 }
@@ -263,12 +383,18 @@ func (m *UserMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *UserMutation) Field(name string) (ent.Value, bool) {
+func (m *TextQuestionMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case user.FieldAge:
-		return m.Age()
-	case user.FieldName:
-		return m.Name()
+	case textquestion.FieldCreatedAt:
+		return m.CreatedAt()
+	case textquestion.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case textquestion.FieldHumanID:
+		return m.HumanID()
+	case textquestion.FieldText:
+		return m.Text()
+	case textquestion.FieldAnswer:
+		return m.Answer()
 	}
 	return nil, false
 }
@@ -276,153 +402,183 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *TextQuestionMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case user.FieldAge:
-		return m.OldAge(ctx)
-	case user.FieldName:
-		return m.OldName(ctx)
+	case textquestion.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case textquestion.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case textquestion.FieldHumanID:
+		return m.OldHumanID(ctx)
+	case textquestion.FieldText:
+		return m.OldText(ctx)
+	case textquestion.FieldAnswer:
+		return m.OldAnswer(ctx)
 	}
-	return nil, fmt.Errorf("unknown User field %s", name)
+	return nil, fmt.Errorf("unknown TextQuestion field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *UserMutation) SetField(name string, value ent.Value) error {
+func (m *TextQuestionMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case user.FieldAge:
-		v, ok := value.(int)
+	case textquestion.FieldCreatedAt:
+		v, ok := value.(time.Time)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetAge(v)
+		m.SetCreatedAt(v)
 		return nil
-	case user.FieldName:
+	case textquestion.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case textquestion.FieldHumanID:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetName(v)
+		m.SetHumanID(v)
+		return nil
+	case textquestion.FieldText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetText(v)
+		return nil
+	case textquestion.FieldAnswer:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAnswer(v)
 		return nil
 	}
-	return fmt.Errorf("unknown User field %s", name)
+	return fmt.Errorf("unknown TextQuestion field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *UserMutation) AddedFields() []string {
-	var fields []string
-	if m.addage != nil {
-		fields = append(fields, user.FieldAge)
-	}
-	return fields
+func (m *TextQuestionMutation) AddedFields() []string {
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case user.FieldAge:
-		return m.AddedAge()
-	}
+func (m *TextQuestionMutation) AddedField(name string) (ent.Value, bool) {
 	return nil, false
 }
 
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *UserMutation) AddField(name string, value ent.Value) error {
+func (m *TextQuestionMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case user.FieldAge:
-		v, ok := value.(int)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddAge(v)
-		return nil
 	}
-	return fmt.Errorf("unknown User numeric field %s", name)
+	return fmt.Errorf("unknown TextQuestion numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *UserMutation) ClearedFields() []string {
-	return nil
+func (m *TextQuestionMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(textquestion.FieldAnswer) {
+		fields = append(fields, textquestion.FieldAnswer)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *UserMutation) FieldCleared(name string) bool {
+func (m *TextQuestionMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *UserMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown User nullable field %s", name)
+func (m *TextQuestionMutation) ClearField(name string) error {
+	switch name {
+	case textquestion.FieldAnswer:
+		m.ClearAnswer()
+		return nil
+	}
+	return fmt.Errorf("unknown TextQuestion nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *UserMutation) ResetField(name string) error {
+func (m *TextQuestionMutation) ResetField(name string) error {
 	switch name {
-	case user.FieldAge:
-		m.ResetAge()
+	case textquestion.FieldCreatedAt:
+		m.ResetCreatedAt()
 		return nil
-	case user.FieldName:
-		m.ResetName()
+	case textquestion.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case textquestion.FieldHumanID:
+		m.ResetHumanID()
+		return nil
+	case textquestion.FieldText:
+		m.ResetText()
+		return nil
+	case textquestion.FieldAnswer:
+		m.ResetAnswer()
 		return nil
 	}
-	return fmt.Errorf("unknown User field %s", name)
+	return fmt.Errorf("unknown TextQuestion field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *UserMutation) AddedEdges() []string {
+func (m *TextQuestionMutation) AddedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *UserMutation) AddedIDs(name string) []ent.Value {
+func (m *TextQuestionMutation) AddedIDs(name string) []ent.Value {
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *UserMutation) RemovedEdges() []string {
+func (m *TextQuestionMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *UserMutation) RemovedIDs(name string) []ent.Value {
+func (m *TextQuestionMutation) RemovedIDs(name string) []ent.Value {
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *UserMutation) ClearedEdges() []string {
+func (m *TextQuestionMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *UserMutation) EdgeCleared(name string) bool {
+func (m *TextQuestionMutation) EdgeCleared(name string) bool {
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *UserMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown User unique edge %s", name)
+func (m *TextQuestionMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown TextQuestion unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *UserMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown User edge %s", name)
+func (m *TextQuestionMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown TextQuestion edge %s", name)
 }
