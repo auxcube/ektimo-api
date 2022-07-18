@@ -3,14 +3,22 @@
 package ent
 
 import (
+	"github.com/auxcube/ektimo-api/ent/candidate"
 	"github.com/auxcube/ektimo-api/ent/schema"
 	"github.com/auxcube/ektimo-api/ent/user"
+	"github.com/google/uuid"
 )
 
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	candidateFields := schema.Candidate{}.Fields()
+	_ = candidateFields
+	// candidateDescID is the schema descriptor for id field.
+	candidateDescID := candidateFields[0].Descriptor()
+	// candidate.DefaultID holds the default value on creation for the id field.
+	candidate.DefaultID = candidateDescID.Default.(func() uuid.UUID)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescAge is the schema descriptor for age field.
