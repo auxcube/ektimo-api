@@ -9,6 +9,7 @@ import (
 	"time"
 
 	_ "github.com/auxcube/ektimo-api/docs"
+	"github.com/auxcube/ektimo-api/internal/auth"
 	"github.com/auxcube/ektimo-api/internal/health"
 	"github.com/auxcube/ektimo-api/pkg/config"
 	"github.com/auxcube/ektimo-api/pkg/database"
@@ -25,7 +26,7 @@ import (
 // @host            localhost:8080
 
 func main() {
-	config.Initialize(os.Getenv("ENV"))
+	config.Initialize(os.Getenv("ENV"), "./config")
 	log := logger.New(config.Global.Log.Level)
 
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
@@ -42,6 +43,8 @@ func main() {
 
 	// TODO: initialize MVC components/dependencies here
 	healthController := health.NewController(db)
+	authService := auth.NewService()
+	authController := auth.NewController(&authService)
 
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
@@ -58,7 +61,13 @@ func main() {
 	router.GET("/swagger/*any", swaggerHandler)
 
 	// TODO: register routes
+
+	// Creating auth group
+	authorized := router.Group("/")
+	authorized.Use(auth.AuthMiddleware)
+
 	healthController.RegisterRoutes(router)
+	authController.RegisterRoutes(router)
 
 	httpServer := httpserver.New(router, httpserver.Port(config.Global.HTTP.Port))
 	log.Info("Server started listening on port %d", config.Global.HTTP.Port)
