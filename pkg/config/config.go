@@ -23,6 +23,7 @@ type (
 		HTTP `mapstructure:",squash"`
 		Log  `mapstructure:",squash"`
 		PG   `mapstructure:",squash"`
+		Auth `mapstructure:",squash"`
 	}
 
 	HTTP struct {
@@ -41,10 +42,16 @@ type (
 		Password string `mapstructure:"POSTGRES_PASSWORD"`
 		Options  string `mapstructure:"POSTGRES_OPTIONS"`
 	}
+
+	Auth struct {
+		AdminUsername string `mapstructure:"ADMIN_USERNAME"`
+		AdminPassword string `mapstructure:"ADMIN_PASSWORD"`
+		Secret        string `mapstructure:"SECRET"`
+	}
 )
 
-func Initialize(env string) {
-	cfg, err := Load(env)
+func Initialize(env, configFolderPath string) {
+	cfg, err := Load(env, configFolderPath)
 	if err != nil {
 		panic(err)
 	}
@@ -55,10 +62,10 @@ func Initialize(env string) {
 // Load reads in configurations from config files and environment variables
 // It uses the following order to override configurations:
 // 1. .default.env, 2. .$env.env, 3. .local.env, 4. environment variables
-func Load(env string) (Config, error) {
+func Load(env, configFolderPath string) (Config, error) {
 	viper.SetConfigName(".default")
 	viper.SetConfigType("env")
-	viper.AddConfigPath("./config")
+	viper.AddConfigPath(configFolderPath)
 
 	if err := viper.ReadInConfig(); err != nil {
 		return Config{}, err
