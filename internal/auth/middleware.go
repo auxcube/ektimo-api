@@ -17,18 +17,17 @@ func AuthMiddleware(ctx *gin.Context) {
 		return
 	}
 
-	tokenStr := strings.Split(tokenHeader, "Bearer ")[1]
+	tokenStr := ""
+	tokenSplit := strings.Split(tokenHeader, " ")
+	if len(tokenSplit) == 2 && tokenSplit[0] == "Bearer" {
+		tokenStr = tokenSplit[1]
+	}
 	if tokenStr == "" {
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
 	secret := config.Global.Auth.Secret
-	if secret == "" {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, "missing secret")
-		return
-	}
-
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])

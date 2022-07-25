@@ -9,7 +9,6 @@ import (
 )
 
 var (
-	ErrNoSecretDefined = errors.New("no secret defined")
 	ErrGeneratingToken = errors.New("error generating auth token")
 	ErrIncorrectCreds  = errors.New("incorrect username or password")
 )
@@ -36,9 +35,6 @@ func generateToken(username string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user": username,
 	})
-	if config.Global.Auth.Secret == "" {
-		return "", ErrNoSecretDefined
-	}
 	secret := []byte(config.Global.Auth.Secret)
 	return token.SignedString(secret)
 }
